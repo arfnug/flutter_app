@@ -6,7 +6,6 @@ void main() => runApp(MyApp());
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final wordPair = WordPair.random();
     return MaterialApp(
       title: 'StartUp Name Generator',
       theme: new ThemeData(
@@ -21,15 +20,16 @@ class RandomWordState extends State<RandomWords> {
   final List<WordPair> _suggestions = <WordPair>[];
   final Set<WordPair> _saved = new Set<WordPair>();
   final _biggerFont = const TextStyle(fontSize: 18.0);
+  final List<String> items = List<String>.generate(10000, (i) => "Item $i");
 
   @override
   Widget build(BuildContext context) {
-    final wordPair = WordPair.random();
     return Scaffold(
       appBar: AppBar(
         title: Text('Startup Name Generator'),
         actions: <Widget>[
           new IconButton(icon: const Icon(Icons.list), onPressed: _pushSaved),
+          new IconButton(icon: const Icon(Icons.favorite) , onPressed: _pushFavorite),
         ],
       ),
       body: _buildSuggestions(),
@@ -51,12 +51,10 @@ class RandomWordState extends State<RandomWords> {
                   },
           );
 
-          final List<Widget> divided = ListTile
-              .divideTiles(
+          final List<Widget> divided = ListTile.divideTiles(
             context: context,
             tiles: tiles,
-          )
-              .toList();
+          ).toList();
 
           return new Scaffold(         // Add 6 lines from here...
             appBar: new AppBar(
@@ -69,13 +67,39 @@ class RandomWordState extends State<RandomWords> {
     );
   }
 
-  Widget _buildSuggestions() {
-    return ListView.builder(
-        padding: const EdgeInsets.all(16.0),
-        itemBuilder: (context, i) {
+  void _pushFavorite() {
+    Navigator.of(context).push(
+      new MaterialPageRoute<void>(builder: (BuildContext context) {
+        return new Scaffold(
+          appBar: new AppBar(
+              title: const Text('Favorite')
+          ),
+          body: ListView.builder(
+            itemCount: items.length,
+            itemBuilder: (context, index) {
+              return ListTile(
+                title: Text(
+                  '${items[index]}',
+                  style: _biggerFont,
+                ),
+                // trailing: new Icon(Icons.access_alarm, color: Colors.amber,),
+              );
+          },
+          ),
+        );
+      }
+      ),
+    );
+  }
 
+  Widget _buildSuggestions() {
+    print('Calling _buildSuggestions()');
+    return ListView.builder(
+        // padding: const EdgeInsets.all(16.0),
+        itemBuilder: (context, i) {
           if (i.isOdd) return Divider(); /*2*/
           final index = i ~/ 2; /*3*/
+          print('Suggestion length: ' + _suggestions.length.toString());
           if (index >= _suggestions.length) {
             _suggestions.addAll(generateWordPairs().take(10)); /*4*/
           }
@@ -84,6 +108,7 @@ class RandomWordState extends State<RandomWords> {
   }
 
   Widget _buildRow(WordPair pair) {
+    //print('Calling _buildRow()' + pair.toString());
     final bool alreadySaved = _saved.contains(pair);
     return ListTile(
       title: Text(
